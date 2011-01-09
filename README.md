@@ -3,10 +3,11 @@ pyREST
 
 pyREST is a half-complete REST interface module. It doesn't provide any specific interface
 to any specific service, or make any (many?) assumptions about what type of service you're
-accessing, beyond these:
+accessing, beyond:
 
 1. You're using JSON to send request bodies and receive responses
-2. Probably some other things I'll add later
+2. You want to use GET requests, unless you have a request body to send, in which case you want POST
+3. You're willing to allow multiple values for the same key in a query string (e.g. test=1&test=2)
 
 USAGE
 -----
