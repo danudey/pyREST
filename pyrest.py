@@ -70,6 +70,9 @@ class rest(object):
 		return '&'.join(res)
 		
 	def _combinequeries(self,*args):
+		"""accepts as many dicts as you want to pass; returns a query
+		string with the merged contents of the dicts; duplicate key/value pairs
+		are only represented once"""
 		endquery = defaultdict(set)
 		for query in args:
 			if query:
@@ -81,15 +84,19 @@ class rest(object):
 		return endquery
 	
 	def urirequest(self, uri, method='GET', query=None, headers=None, body=None, qs_append=True):
+		"""accepts a uri, appends it to self.baseurl, and calls urlrequest with the result"""
 		if not self.baseurl:
 			raise UsageException("No base URL is configured")
 		url = "%s%s" % (self.baseurl, uri)
 		return self.urlrequest(url, method, headers, body)
 	
 	def urlrequest(self, url, method='GET', query=None, headers=None, body=None, qs_append=True):
+		"""Makes a REST request to the URL provided"""
 		urlparts = urlparse(url)
 		if urlparts.scheme not in self.supportedschemes:
 			raise UsageException("This class only supports the following URL schemes: %s" % ' '.join(self.supportedschemes))
+		if query and not isinstance(query,dict):
+			raise UsageException("The query parameter must be a dict (for now)")
 		
 		if qs_append:
 			origquery = parse_qs(urlparts.query)
