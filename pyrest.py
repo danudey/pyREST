@@ -13,7 +13,7 @@ class RestException(Exception):
 			self.msg = parent.msg
 			try:
 				self.body = json.loads(body)
-			except ValueError, e:
+			except ValueError:
 				self.body = {}
 			self.rawbody = body
 			self.url = parent.url
