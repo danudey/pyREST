@@ -1,6 +1,5 @@
 import json
 from urlparse import urlparse, parse_qs
-import httplib
 import urllib
 import urllib2
 from collections import defaultdict
@@ -16,6 +15,7 @@ class RestException(Exception):
             except ValueError:
                 self.body = {}
             self.rawbody = body
+            self.parent = parent
             self.url = parent.url
             self.headers = parent.headers.dict
 
@@ -55,21 +55,21 @@ class RestAPI(object):
         super(rest, self).__init__()
         self.baseurl = baseurl
         self.user_agent = user_agent
-        self.supportedschemes = ['http','https']
+        self.supportedschemes = ['http', 'https']
 
-    def _mappingtoquery(self,query):
+    def _mappingtoquery(self, query):
         """accepts a dict, returns a query string"""
-        q = lambda x: urllib.quote(str(x))
+        quote = lambda x: urllib.quote(str(x))
         res = []
         for key in query:
-            if isinstance(query[key],list) or isinstance(query[key],set):
-                res.extend(["%s=%s" % (q(key),q(value)) for value in query[key]])
+            if isinstance(query[key], list) or isinstance(query[key], set):
+                res.extend(["%s=%s" % (quote(key), quote(value)) for value in query[key]])
             else:
-                res.append("%s=%s" % (q(key), q(query[key])))
+                res.append("%s=%s" % (quote(key), quote(query[key])))
 
         return '&'.join(res)
 
-    def _combinequeries(self,*args):
+    def _combinequeries(self, *args):
         """accepts as many dicts as you want to pass; returns a query
         string with the merged contents of the dicts; duplicate key/value pairs
         are only represented once"""
@@ -77,7 +77,7 @@ class RestAPI(object):
         for query in args:
             if query:
                 for key in query.keys():
-                    if isinstance(query[key],list) or isinstance(query[key],set):
+                    if isinstance(query[key], list) or isinstance(query[key], set):
                         endquery[key] = endquery[key].union(set(query[key]))
                     else:
                         endquery[key].add(query[key])
@@ -94,8 +94,9 @@ class RestAPI(object):
         """Makes a REST request to the URL provided"""
         urlparts = urlparse(url)
         if urlparts.scheme not in self.supportedschemes:
-            raise UsageException("This class only supports the following URL schemes: %s" % ' '.join(self.supportedschemes))
-        if query and not isinstance(query,dict):
+            raise UsageException("This class only supports the following URL schemes: %s" %
+                ' '.join(self.supportedschemes))
+        if query and not isinstance(query, dict):
             raise UsageException("The query parameter must be a dict (for now)")
 
         if qs_append:
@@ -103,19 +104,19 @@ class RestAPI(object):
         else:
             origquery = None
 
-        newquery = self._mappingtoquery(self._combinequeries(origquery,query))
+        newquery = self._mappingtoquery(self._combinequeries(origquery, query))
 
         if newquery:
-            url = "%s://%s%s?%s" % (urlparts.scheme,urlparts.netloc,urlparts.path,newquery)
+            url = "%s://%s%s?%s" % (urlparts.scheme, urlparts.netloc, urlparts.path, newquery)
         else:
-            url = "%s://%s%s" % (urlparts.scheme,urlparts.netloc,urlparts.path)
+            url = "%s://%s%s" % (urlparts.scheme, urlparts.netloc, urlparts.path)
 
         # We build the request into a dict here so we can
         # dump it later for debugging purposes.
         request = {}
         request['url'] = url
         if body:
-            if isinstance(body,str):
+            if isinstance(body, str):
                 request['data'] = body
             else:
                 request['data'] = json.dumps(body)
@@ -128,8 +129,7 @@ class RestAPI(object):
             response = urllib2.urlopen(request)
             body = response.read()
             rresponse = RestResponse(response.code, response.msg, body, response.url, response.headers.dict)
-        except urllib2.HTTPError, e:
-            response = e
-            raise RestException("HTTP Error", e)
+        except urllib2.HTTPError, exc:
+            raise RestException("HTTP Error", exc)
 
         return rresponse
