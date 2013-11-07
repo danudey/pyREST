@@ -35,10 +35,10 @@ class RestException(Exception):
 class UsageException(Exception):
     pass
 
-class restresponse(object):
+class RestResponse(object):
     """A response to a REST request"""
     def __init__(self, code, msg, body, url, headers):
-        super(restresponse, self).__init__()
+        super(RestResponse, self).__init__()
         self.code = code
         self.msg = msg
         try:
@@ -49,7 +49,7 @@ class restresponse(object):
         self.url = url
         self.headers = headers
 
-class rest(object):
+class RestAPI(object):
     """A simple module to interact with a REST web API"""
     def __init__(self, baseurl=None, user_agent=None):
         super(rest, self).__init__()
@@ -127,7 +127,7 @@ class rest(object):
         try:
             response = urllib2.urlopen(request)
             body = response.read()
-            rresponse = restresponse(response.code, response.msg, body, response.url, response.headers.dict)
+            rresponse = RestResponse(response.code, response.msg, body, response.url, response.headers.dict)
         except urllib2.HTTPError, e:
             response = e
             raise RestException("HTTP Error", e)
