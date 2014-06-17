@@ -31,12 +31,12 @@ class RestException(Exception):
     def __str__(self):
         return self.message
 
-
 class UsageException(Exception):
     pass
 
 class RestResponse(object):
     """A response to a REST request"""
+
     def __init__(self, code, msg, body, url, headers):
         super(RestResponse, self).__init__()
         self.code = code
@@ -51,10 +51,12 @@ class RestResponse(object):
 
 class RestAPI(object):
     """A simple module to interact with a REST web API"""
-    def __init__(self, baseurl=None, user_agent=None):
-        super(rest, self).__init__()
+
+    def __init__(self, baseurl=None, user_agent=None, encoder=None):
+        super(RestAPI, self).__init__()
         self.baseurl = baseurl
         self.user_agent = user_agent
+        self.encoder = encoder
         self.supportedschemes = ['http', 'https']
 
     def _mappingtoquery(self, query):
@@ -88,14 +90,14 @@ class RestAPI(object):
         if not self.baseurl:
             raise UsageException("No base URL is configured")
         url = "%s%s" % (self.baseurl, uri)
-        return self.urlrequest(url, method, headers, body)
+        return self.urlrequest(url, method=method, query=query, headers=headers, body=body, qs_append=qs_append)
 
     def urlrequest(self, url, method='GET', query=None, headers=None, body=None, qs_append=True):
         """Makes a REST request to the URL provided"""
         urlparts = urlparse(url)
         if urlparts.scheme not in self.supportedschemes:
             raise UsageException("This class only supports the following URL schemes: %s" %
-                ' '.join(self.supportedschemes))
+                                 ' '.join(self.supportedschemes))
         if query and not isinstance(query, dict):
             raise UsageException("The query parameter must be a dict (for now)")
 
@@ -119,7 +121,7 @@ class RestAPI(object):
             if isinstance(body, str):
                 request['data'] = body
             else:
-                request['data'] = json.dumps(body)
+                request['data'] = json.dumps(body, cls=self.encoder)
         if headers:
             request['headers'] = headers
 
