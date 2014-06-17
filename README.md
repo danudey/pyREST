@@ -16,8 +16,8 @@ Basic usage:
 
 	import pyrest
 	
-	rest = pyrest.rest()
-	response = r.urlrequest("http://api.twitter.com/1/statuses/public_timeline.json")
+	rest = pyrest.RestAPI()
+	response = rest.urlrequest("http://api.twitterest.com/1/statuses/public_timeline.json")
 
 `response` then contains a `restresponse` object with various properties you can inspect and access. If
 the request fails, a `RestException` is raised with (nearly) identical properties, including the original
@@ -28,8 +28,8 @@ use this functionality, you can use the `urirequest` method of the `rest` class.
 
 	import pyrest
 	
-	rest = pyrest.rest(baseurl="http://api.twitter.com/1/")
-	response = r.urirequest("statuses/public_timeline.json")
+	rest = pyrest.RestAPI(baseurl="http://api.twitterest.com/1/")
+	response = rest.urirequest("statuses/public_timeline.json")
 
 For the `urirequest` and `urlrequest` methods, you can pass a few parameters of interest:
 
